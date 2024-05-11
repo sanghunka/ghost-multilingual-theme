@@ -43,13 +43,58 @@
         {{/tag}}
 
         {{#foreach posts}}
-            {{!-- The tag below includes the markup for each post - partials/post-card.hbs --}}
-            {{> "post-card"}}
+            <div class="post-card" data-language="{{tags.[1].name}}">
+                {{!-- The tag below includes the markup for each post - partials/post-card.hbs --}}
+                {{> "post-card"}}
+            </div>
         {{/foreach}}
-
     </div>
 
     {{pagination}}
+    <style>
+        .post-card-excerpt,
+        div.post-card {
+            opacity: 0; /* Initially set all post cards to be transparent */
+            transition: opacity 0.5s ease; /* Transition for smooth display */
+        }
+    </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';  // Read language setting from local storage or use default 'en'
+        const postCards = document.querySelectorAll('div.post-card[data-language]');
+        let visibleCount = 0;
+
+        postCards.forEach(card => {
+            // Remove '#' character and update language setting
+            const language = card.getAttribute('data-language');
+            const cleanedLanguage = language.replace('#', '');
+            card.setAttribute('data-language', cleanedLanguage);
+
+            // Check if it matches the selected language, then show or hide
+            if (cleanedLanguage !== selectedLanguage) {
+                card.style.display = 'none';
+            } else {
+                visibleCount++;  // Count the number of posts that match the selected language
+                setTimeout(() => {  // Use setTimeout for a smooth display
+                    card.style.opacity = 1;  // Set opacity to 1 to make the element visible
+                }, 10);
+            }
+        });
+
+        // Dynamically update text
+        const collectionText = document.querySelector('.post-card-excerpt');
+        if (collectionText) {
+            const text = visibleCount === 0 ? 'zero posts' :
+                        visibleCount === 1 ? '1 post' :
+                        `${visibleCount} posts`;  // Set text based on the count
+            collectionText.innerHTML = `A collection of ${text}`;  // Set text in HTML
+            setTimeout(() => {  // Use setTimeout for a smooth display
+                collectionText.style.opacity = 1;  // Set opacity to 1 to make the element visible
+            }, 10);
+        }
+    });
+    </script>
     
 </div>
 </main>

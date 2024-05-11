@@ -130,15 +130,24 @@ $(document).ready(function () {
         var selector = document.getElementById('languageSelector');
         var currentUrl = window.location.href;
         
-        var urlLanguage = currentUrl.includes('/ko/') ? 'ko' : 'en';
-        localStorage.setItem('selectedLanguage', urlLanguage);
-        selector.value = urlLanguage;
-        
+        if (!currentUrl.includes('/tag/')) {
+            var urlLanguage = currentUrl.includes('/ko/') ? 'ko' : 'en';
+            localStorage.setItem('selectedLanguage', urlLanguage);
+            selector.value = urlLanguage;
+        } else {
+            selector.value = localStorage.getItem('selectedLanguage') || 'en';
+        }
+
         selector.style.display = 'block';
 
         selector.addEventListener('change', function() {
             localStorage.setItem('selectedLanguage', this.value);
-            window.location.href = this.value === 'ko' ? '/ko/' : '/';
+            if (!currentUrl.includes('/tag/')) {
+                window.location.href = this.value === 'ko' ? '/ko/' : '/';
+            }
+            else {
+                window.location = window.location.href;
+            }
         });
     }
     
