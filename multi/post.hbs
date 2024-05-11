@@ -5,6 +5,11 @@ into the {body} tag of the default.hbs template --}}
 
 
 {{#post}}
+  {{#has tag="#ko"}}
+    {{#contentFor "lang"}}ko{{/contentFor}}
+  {{else}}
+    {{#contentFor "lang"}}en{{/contentFor}}
+  {{/has}}
 {{!-- Everything inside the #post block pulls data from the post --}}
 
 <main id="site-main" class="site-main">

@@ -2,8 +2,13 @@ routes:
 
 collections:
   /:
+    filter: "tag:en"
     permalink: /{slug}/
-    template: index
+    template: index-en
+  /ko/:
+    filter: "tag:ko"
+    permalink: /ko/{slug}/
+    template: index-ko
 
 taxonomies:
   tag: /tag/{slug}/
