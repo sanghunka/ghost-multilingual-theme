@@ -72,3 +72,14 @@ Keep this template as lightweight as you can!
     </div>
 </body>
 </html>
+
+<script type="text/javascript" src="{{asset 'js/util.js'}}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectedLanguage = getSelectedLanguage();
+    if (selectedLanguage !== 'en') {
+        updateLink('.error-link', selectedLanguage);
+        updateLink('.site-nav-logo', selectedLanguage);
+    }
+});
+</script>

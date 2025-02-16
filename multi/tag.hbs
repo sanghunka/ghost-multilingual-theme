@@ -59,9 +59,10 @@
         }
     </style>
 
+    <script type="text/javascript" src="{{asset 'js/util.js'}}"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';  // Read language setting from local storage or use default 'en'
+        const selectedLanguage = getSelectedLanguage();  // Read language setting from local storage or use default 'en'
         const postCards = document.querySelectorAll('div.post-card[data-language]');
         let visibleCount = 0;
 

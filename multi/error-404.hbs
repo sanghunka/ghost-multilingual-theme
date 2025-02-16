@@ -35,3 +35,13 @@ were looking for, let's give them some alternative stuff to read. --}}
         {{/get}}
     </div>
 </aside>
+
+<script type="text/javascript" src="{{asset 'js/util.js'}}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectedLanguage = getSelectedLanguage();
+    if (selectedLanguage !== 'en') {
+        updateLink('.error-link', selectedLanguage);
+    }
+});
+</script>
