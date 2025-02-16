@@ -79,6 +79,10 @@
                 visibleCount++;  // Count the number of posts that match the selected language
                 setTimeout(() => {  // Use setTimeout for a smooth display
                     card.style.opacity = 1;  // Set opacity to 1 to make the element visible
+                    const excerpts = card.querySelectorAll('.post-card-excerpt');
+                    excerpts.forEach(excerpt => {
+                        excerpt.style.opacity = 1;
+                    });                
                 }, 10);
             }
         });
