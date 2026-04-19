@@ -1,2 +1,5 @@
 .DS_Store
 *.zip
+.env
+node_modules/
+package-lock.json

@@ -1,2 +1,7 @@
 {{!< index}}
 {{#contentFor "lang"}}en{{/contentFor}}
+{{#contentFor "hreflang-home"}}
+    <link rel="alternate" hreflang="en" href="{{@site.url}}/" />
+    <link rel="alternate" hreflang="ko" href="{{@site.url}}/ko/" />
+    <link rel="alternate" hreflang="x-default" href="{{@site.url}}/" />
+{{/contentFor}}

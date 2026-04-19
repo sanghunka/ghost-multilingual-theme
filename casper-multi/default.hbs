@@ -17,6 +17,31 @@
     this will take care of caching and cache-busting automatically --}}
     <link rel="stylesheet" type="text/css" href="{{asset "built/screen.css"}}" />
 
+    {{!-- Hreflang: home pages (/ and /ko/)
+         Injected per-locale via a contentFor block from each
+         index-{lang}.hbs. Ghost's {{#is "home"}} matches only /,
+         not /ko/, so a contentFor block is used instead. --}}
+    {{{block "hreflang-home"}}}
+
+    {{!-- Hreflang: multilingual posts/pages (#multi tag)
+         Language and #multi gate are both detected by inspecting the post's
+         tag names in JS (Ghost's {{#has tag="..."}} is unreliable for internal
+         tags — their slugs are "hash-xxx" while names are "#xxx"). Partner
+         slug is computed by stripping the language suffix and re-appending
+         each supported language — string op done in JS (Handlebars has no
+         string-replace helper and Magic Pages blocks custom helpers).
+         Googlebot executes JS and indexes the injected hreflang.
+
+         To add a language (e.g. Japanese):
+           1. Add "ja" to LANGS below.
+           2. Add a /ja/ collection with filter "tag:ja" in routes.yaml.
+           3. Create index-ja.hbs + inject into hreflang-home block.
+           4. Ensure every #multi post has all three language versions, or
+              only tag #multi when all versions exist (otherwise hreflang
+              will point to 404s and Google will report errors).  --}}
+    {{#is "post"}}{{#post}}{{> "hreflang-multi"}}{{/post}}{{/is}}
+    {{#is "page"}}{{#page}}{{> "hreflang-multi"}}{{/page}}{{/is}}
+
     {{!-- This tag outputs all your advanced SEO meta, structured data, and other important settings,
     it should always be the last tag before the closing head tag --}}
     {{ghost_head}}

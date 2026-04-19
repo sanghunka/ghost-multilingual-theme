@@ -1,0 +1,33 @@
+<script>
+(function(){
+    var LANGS = ["en", "ko"];       // supported languages; extend here
+    var DEFAULT_LANG = "en";        // served without a URL prefix
+
+    var tagNames = [{{#foreach tags visibility="all"}}"{{name}}"{{#unless @last}},{{/unless}}{{/foreach}}];
+    if (tagNames.indexOf("#multi") === -1) return;
+
+    var lang = null;
+    LANGS.forEach(function(l) {
+        if (tagNames.indexOf("#" + l) !== -1) lang = l;
+    });
+    if (!lang) return;
+
+    var slug = "{{slug}}";
+    var siteUrl = "{{@site.url}}";
+    var suffixPattern = new RegExp("-(" + LANGS.join("|") + ")$");
+    var stem = slug.replace(suffixPattern, "");
+
+    function buildUrl(l) {
+        var prefix = (l === DEFAULT_LANG) ? "" : "/" + l;
+        return siteUrl + prefix + "/" + stem + "-" + l + "/";
+    }
+
+    var html = "";
+    LANGS.forEach(function(l) {
+        html += '<link rel="alternate" hreflang="' + l + '" href="' + buildUrl(l) + '"/>';
+    });
+    html += '<link rel="alternate" hreflang="x-default" href="' + buildUrl(DEFAULT_LANG) + '"/>';
+
+    document.head.insertAdjacentHTML("beforeend", html);
+})();
+</script>

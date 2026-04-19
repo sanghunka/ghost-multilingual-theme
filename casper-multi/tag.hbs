@@ -43,7 +43,7 @@
         {{/tag}}
 
         {{#foreach posts}}
-            <div class="post-card" data-language="{{tags.[1].name}}">
+            <div class="post-card" data-tags='[{{#foreach tags visibility="all"}}"{{name}}"{{#unless @last}},{{/unless}}{{/foreach}}]'>
                 {{!-- The tag below includes the markup for each post - partials/post-card.hbs --}}
                 {{> "post-card"}}
             </div>
@@ -62,27 +62,34 @@
     <script type="text/javascript" src="{{asset 'js/util.js'}}"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const selectedLanguage = getSelectedLanguage();  // Read language setting from local storage or use default 'en'
-        const postCards = document.querySelectorAll('div.post-card[data-language]');
+        const LANGS = ["en", "ko"];                       // supported languages; extend here
+        const selectedLanguage = getSelectedLanguage();   // from localStorage, default 'en'
+        const postCards = document.querySelectorAll('div.post-card[data-tags]');
         let visibleCount = 0;
 
         postCards.forEach(card => {
-            // Remove '#' character and update language setting
-            const language = card.getAttribute('data-language');
-            const cleanedLanguage = language.replace('#', '');
-            card.setAttribute('data-language', cleanedLanguage);
+            // Parse all tag names for this post, find the language tag regardless of position
+            let tagNames = [];
+            try {
+                tagNames = JSON.parse(card.getAttribute('data-tags') || '[]');
+            } catch (e) {}
 
-            // Check if it matches the selected language, then show or hide
-            if (cleanedLanguage !== selectedLanguage) {
+            let cardLang = null;
+            LANGS.forEach(l => {
+                if (tagNames.indexOf('#' + l) !== -1) cardLang = l;
+            });
+
+            // Hide cards whose language doesn't match the selected one (or have no language tag)
+            if (cardLang !== selectedLanguage) {
                 card.style.display = 'none';
             } else {
-                visibleCount++;  // Count the number of posts that match the selected language
-                setTimeout(() => {  // Use setTimeout for a smooth display
-                    card.style.opacity = 1;  // Set opacity to 1 to make the element visible
+                visibleCount++;
+                setTimeout(() => {  // smooth reveal
+                    card.style.opacity = 1;
                     const excerpts = card.querySelectorAll('.post-card-excerpt');
                     excerpts.forEach(excerpt => {
                         excerpt.style.opacity = 1;
-                    });                
+                    });
                 }, 10);
             }
         });
