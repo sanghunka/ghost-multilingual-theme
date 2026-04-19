@@ -6,45 +6,74 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.0.8] — 2026-04-20
 
+### Summary
+Tag-based language detection is completely reworked. Previous versions
+relied on two brittle assumptions: that the language tag sits at a fixed
+position in the tag list (`{{tags.[1].name}}`), and that Ghost's built-in
+`{{#has tag="..."}}` helper works the same for internal tags as for
+public ones. Both assumptions are gone. The new model serializes every
+tag name of a post into a JavaScript array at render time and does all
+language / `#multi` detection in JS by searching that array. This
+applies identically to the new automated bilingual-post hreflang
+(`partials/hreflang-multi.hbs`) and to the tag-page language filter
+(`tag.hbs`).
+
+### Changed — tag handling (breaking internal convention)
+- **Language detection is now tag-order-independent.** `tag.hbs` no
+  longer reads `{{tags.[1].name}}`. Each post card now carries
+  `data-tags='[...]'` containing every tag name (public + internal),
+  produced via `{{#foreach tags visibility="all"}}`. The filter script
+  searches that array for `#en` / `#ko` / ... and hides cards whose
+  language does not match the user-selected locale. Reordering tags in
+  Ghost admin no longer breaks filtering.
+- **`{{#has tag="..."}}` is no longer used for internal tags.** Its
+  matching behavior is unreliable for internal tags because the tag's
+  slug is `hash-xxx` while its display name is `#xxx` — matching by
+  the naive form silently fails. Instead, the new partial and the tag
+  page both build a JS array of tag names and call
+  `tagNames.indexOf("#multi")` / `"#en"` / etc. This is explicit and
+  predictable.
+- **`visibility="all"` is required on `{{#foreach tags}}`** when the
+  loop needs internal tags. By default Ghost filters internal tags
+  (the ones that start with `#`) out of `{{#foreach tags}}`. The
+  language tag (`#en`, `#ko`) and the bilingual marker (`#multi`) are
+  internal, so both the hreflang partial and `tag.hbs` now pass
+  `visibility="all"`.
+
 ### Added
-- Client-side hreflang injection for bilingual posts/pages (tagged `#multi`),
-  extracted into `partials/hreflang-multi.hbs`. The partial reads all the
-  post's tag names (including internal tags via `visibility="all"`), detects
-  `#multi` and the language tag (`#en` / `#ko`) regardless of tag order,
-  computes partner URLs from the slug suffix convention, and injects three
-  `<link rel="alternate" hreflang=...>` tags into `<head>` at runtime.
-  Invoked from `default.hbs` inside `{{#is "post"}}{{#post}}...{{/post}}{{/is}}`
-  and the matching `"page"` block so the post/page context is available.
-  Googlebot executes this JS and indexes the injected tags. Removes the need
-  for per-post manual Code Injection on most bilingual pairs.
-- Generalized language configuration: `LANGS = ["en", "ko"]` and
-  `DEFAULT_LANG = "en"` constants drive both the hreflang partial and the
-  tag-page filter; extending the theme to a new locale is a one-line edit
-  in each place plus `routes.yaml` and a new `index-<lang>.hbs`
-  (see `ADDING_A_LANGUAGE.md`).
-- `ADDING_A_LANGUAGE.md` in the theme folder: step-by-step procedure for
-  adding a new language using Japanese as the worked example.
-- `CHANGELOG.md` (this file).
+- **`partials/hreflang-multi.hbs`** — client-side script that injects
+  hreflang tags for bilingual posts / pages at runtime. Uses the new
+  tag-array model above to detect `#multi` and the current language,
+  then computes partner URLs from the `-en` / `-ko` slug suffix
+  convention. Appends three `<link rel="alternate" hreflang=...>` tags
+  (including `x-default`) to `<head>`. Invoked from `default.hbs`
+  inside `{{#is "post"}}{{#post}}{{> "hreflang-multi"}}{{/post}}{{/is}}`
+  (and the matching `"page"` block) so post / page context is
+  available for `{{slug}}` and `{{tags}}`.
+- **Generalized language configuration.** Both `partials/hreflang-multi.hbs`
+  and `tag.hbs` declare `LANGS = ["en", "ko"]` and `DEFAULT_LANG = "en"`
+  constants. Adding a locale is a one-line edit in each place plus
+  `routes.yaml` and a new `index-<lang>.hbs`.
+- **`ADDING_A_LANGUAGE.md`** in the theme folder — worked example
+  (Japanese) of extending the theme to a new locale.
+- **`CHANGELOG.md`** (this file).
 
-### Changed
-- `tag.hbs` language filter rewritten to be tag-order-independent. Instead
-  of reading `{{tags.[1].name}}` (which required the language tag to be
-  exactly the second tag), each card now serializes every tag name into
-  `data-tags='[...]'` and the client-side script searches that array for
-  `#en` or `#ko`. Misordered or topic-tag-missing posts still filter
-  correctly. Matches the pattern used by `partials/hreflang-multi.hbs`.
+### Removed
+- Manual per-post `Code Injection` is no longer required for most
+  bilingual posts. Posts that follow the `-en` / `-ko` slug convention
+  and the `#multi` tag get hreflang automatically. (Existing manual
+  Code Injection in specific posts will coexist — the partial just
+  appends three more `<link>` tags alongside it.)
 
-### Notes
+### Notes on SEO and crawler compatibility
 - Server-side hreflang generation for posts is not possible on managed
   Ghost hosts (Magic Pages, Ghost(Pro), etc.) that sandbox theme code:
   Handlebars has no string-replace helper and custom helpers cannot be
-  registered. Client-side injection is the pragmatic alternative and is
-  accepted by Google. Crawlers with weaker JS rendering (legacy Bing,
-  some aggregators) may still miss the tags.
-- `{{#has tag="multi"}}` (Ghost's built-in helper) was unreliable for
-  internal tags because their slugs are `hash-xxx` while names are `#xxx`.
-  Detection is now done in JS by inspecting `{{#foreach tags visibility="all"}}`
-  output, which is both predictable and order-independent.
+  registered. Client-side injection is the pragmatic alternative and
+  is accepted by Google. Crawlers with weaker JS rendering (legacy
+  Bing, some aggregators) may still miss the tags. Acceptable trade-off
+  for this blog; revisit if the bilingual post count grows or a
+  non-Google search engine becomes important.
 
 ## [0.0.7] — 2026-04-19
 
