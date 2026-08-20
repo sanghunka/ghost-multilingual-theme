@@ -4,13 +4,12 @@
     var DEFAULT_LANG = "en";        // served without a URL prefix
 
     var tagNames = [{{#foreach tags visibility="all"}}"{{name}}"{{#unless @last}},{{/unless}}{{/foreach}}];
-    if (tagNames.indexOf("#multi") === -1) return;
+    var isMulti = tagNames.indexOf("#multi") !== -1;
 
     var lang = null;
     LANGS.forEach(function(l) {
         if (tagNames.indexOf("#" + l) !== -1) lang = l;
     });
-    if (!lang) return;
 
     var slug = "{{slug}}";
     var siteUrl = "{{@site.url}}";
@@ -22,11 +21,27 @@
         return siteUrl + prefix + "/" + stem + "-" + l + "/";
     }
 
+    var urls = {};
+    if (isMulti && lang) {
+        LANGS.forEach(function(l) {
+            urls[l] = buildUrl(l);
+        });
+    }
+
+    window.casperMultiLanguageContext = {
+        contentType: "{{contentType}}",
+        isMulti: isMulti,
+        currentLanguage: lang,
+        urls: urls
+    };
+
+    if (!isMulti || !lang) return;
+
     var html = "";
     LANGS.forEach(function(l) {
-        html += '<link rel="alternate" hreflang="' + l + '" href="' + buildUrl(l) + '"/>';
+        html += '<link rel="alternate" hreflang="' + l + '" href="' + urls[l] + '"/>';
     });
-    html += '<link rel="alternate" hreflang="x-default" href="' + buildUrl(DEFAULT_LANG) + '"/>';
+    html += '<link rel="alternate" hreflang="x-default" href="' + urls[DEFAULT_LANG] + '"/>';
 
     document.head.insertAdjacentHTML("beforeend", html);
 })();

@@ -39,8 +39,8 @@
            4. Ensure every #multi post has all three language versions, or
               only tag #multi when all versions exist (otherwise hreflang
               will point to 404s and Google will report errors).  --}}
-    {{#is "post"}}{{#post}}{{> "hreflang-multi"}}{{/post}}{{/is}}
-    {{#is "page"}}{{#page}}{{> "hreflang-multi"}}{{/page}}{{/is}}
+    {{#is "post"}}{{#post}}{{> "hreflang-multi" contentType="post"}}{{/post}}{{/is}}
+    {{#is "page"}}{{#page}}{{> "hreflang-multi" contentType="page"}}{{/page}}{{/is}}
 
     {{!-- This tag outputs all your advanced SEO meta, structured data, and other important settings,
     it should always be the last tag before the closing head tag --}}
@@ -154,10 +154,11 @@ $(document).ready(function () {
 <script>
 function initializeLanguageSelector() {
     var selector = document.getElementById('languageSelector');
-    var currentUrl = window.location.href;
-    
-    if (!currentUrl.includes('/tag/')) {
-        var urlLanguage = currentUrl.includes('/ko/') ? 'ko' : 'en';
+    var currentPath = window.location.pathname;
+    var isLanguageFilteredArchive = currentPath.includes('/tag/') || currentPath.includes('/author/');
+
+    if (!isLanguageFilteredArchive) {
+        var urlLanguage = currentPath.startsWith('/ko/') ? 'ko' : 'en';
         localStorage.setItem('selectedLanguage', urlLanguage);
         selector.value = urlLanguage;
     } else {
@@ -167,12 +168,22 @@ function initializeLanguageSelector() {
     selector.style.display = 'block';
 
     selector.addEventListener('change', function() {
-        localStorage.setItem('selectedLanguage', this.value);
-        if (!currentUrl.includes('/tag/')) {
-            window.location.href = this.value === 'ko' ? '/ko/' : '/';
-        }
-        else {
-            window.location = window.location.href;
+        var selectedLanguage = this.value;
+        var contentContext = window.casperMultiLanguageContext;
+
+        localStorage.setItem('selectedLanguage', selectedLanguage);
+
+        if (isLanguageFilteredArchive) {
+            window.location.reload();
+        } else if (
+            contentContext &&
+            contentContext.contentType === 'post' &&
+            contentContext.isMulti &&
+            contentContext.urls[selectedLanguage]
+        ) {
+            window.location.href = contentContext.urls[selectedLanguage];
+        } else {
+            window.location.href = selectedLanguage === 'ko' ? '/ko/' : '/';
         }
     });
 }

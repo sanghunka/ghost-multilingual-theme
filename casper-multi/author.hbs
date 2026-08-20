@@ -64,13 +64,30 @@
         {{/author}}
 
         {{#foreach posts}}
-            {{!-- The tag below includes the markup for each post - partials/post-card.hbs --}}
-            {{> "post-card"}}
+            <div class="post-card" data-tags='[{{#foreach tags visibility="all"}}"{{name}}"{{#unless @last}},{{/unless}}{{/foreach}}]'>
+                {{!-- The tag below includes the markup for each post - partials/post-card.hbs --}}
+                {{> "post-card"}}
+            </div>
         {{/foreach}}
 
     </div>
 
     {{pagination}}
+
+    <style>
+        div.post-card[data-tags],
+        div.post-card[data-tags] .post-card-excerpt {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+    </style>
+
+    <script type="text/javascript" src="{{asset 'js/util.js'}}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        filterArchivePostsByLanguage();
+    });
+    </script>
     
 </div>
 </main>

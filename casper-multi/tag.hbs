@@ -62,37 +62,7 @@
     <script type="text/javascript" src="{{asset 'js/util.js'}}"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const LANGS = ["en", "ko"];                       // supported languages; extend here
-        const selectedLanguage = getSelectedLanguage();   // from localStorage, default 'en'
-        const postCards = document.querySelectorAll('div.post-card[data-tags]');
-        let visibleCount = 0;
-
-        postCards.forEach(card => {
-            // Parse all tag names for this post, find the language tag regardless of position
-            let tagNames = [];
-            try {
-                tagNames = JSON.parse(card.getAttribute('data-tags') || '[]');
-            } catch (e) {}
-
-            let cardLang = null;
-            LANGS.forEach(l => {
-                if (tagNames.indexOf('#' + l) !== -1) cardLang = l;
-            });
-
-            // Hide cards whose language doesn't match the selected one (or have no language tag)
-            if (cardLang !== selectedLanguage) {
-                card.style.display = 'none';
-            } else {
-                visibleCount++;
-                setTimeout(() => {  // smooth reveal
-                    card.style.opacity = 1;
-                    const excerpts = card.querySelectorAll('.post-card-excerpt');
-                    excerpts.forEach(excerpt => {
-                        excerpt.style.opacity = 1;
-                    });
-                }, 10);
-            }
-        });
+        const visibleCount = filterArchivePostsByLanguage();
 
         // Dynamically update text
         const collectionText = document.querySelector('.post-card-excerpt');
